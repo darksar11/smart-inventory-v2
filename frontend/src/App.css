@@ -1,0 +1,126 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0;
+  text-align: left;
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  background-color: #f5f7fb;
+  color: #333;
+}
+
+.container {
+  padding: 0 !important;
+  max-width: 100%;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Enhance the table appearance */
+.MuiTableContainer-root {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
+}
+
+.MuiTableHead-root .MuiTableCell-root {
+  background-color: #f0f4f8;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+/* Custom scrollbar for better UX */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Better button styling */
+.MuiButton-root {
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Better card transitions */
+.MuiCard-root {
+  transition: all 0.3s ease;
+}
+
+/* Input field styling */
+.MuiTextField-root {
+  border-radius: 8px;
+}
+
+.MuiOutlinedInput-root {
+  border-radius: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding: 16px !important;
+  }
+}
