@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = '/api/inventory';
+// Update the base URL to match your server route
+const API_URL = 'http://localhost:5000/api/inventory';
 
 // Get all products
 export const getProducts = async () => {

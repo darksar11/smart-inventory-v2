@@ -1,47 +1,45 @@
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import inventoryRoutes from "./routes/inventoryRoutes.js";
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import inventoryRoutes from './routes/inventoryRoutes.js';
 
-// Configure environment variables
-dotenv.config();
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Initialize express app
 const app = express();
 
-// Get current directory name (ESM equivalent of __dirname)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173', // or your frontend URL
+  credentials: true
+}));
 app.use(express.json());
 
 // Connect to MongoDB
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-inventory', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('🔌 Connected to MongoDB');
-  } catch (err) {
-    console.error('❌ Failed to connect to MongoDB', err);
-    process.exit(1);
-  }
-};
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-inventory', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => {
+  console.log('Connected to MongoDB');
+}).catch(err => {
+  console.error('Failed to connect to MongoDB', err);
+});
 
-connectDB();
-
-// Routes
+// Routes - make sure this matches what your frontend is requesting
 app.use('/api/inventory', inventoryRoutes);
+
+// Debug route
+app.get('/api-status', (req, res) => {
+  res.json({ status: 'API is running' });
+});
 
 // Serve static assets in production
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  app.use(express.static('../frontend/dist'));
   
   app.get('*', (req, res) => {
     res.sendFile(path.resolve(__dirname, '../frontend', 'dist', 'index.html'));
@@ -51,7 +49,6 @@ if (process.env.NODE_ENV === 'production') {
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`API available at http://localhost:${PORT}/api/inventory/products`);
 });
-
-export default app;

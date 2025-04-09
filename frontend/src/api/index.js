@@ -1,14 +1,16 @@
+// frontend/src/index.js
+
 import axios from "axios";
 
 const API = axios.create({ 
-    baseURL: "http://localhost:5000",
+    baseURL: "http://localhost:5000/api/inventory", // ✅ Updated baseURL
     timeout: 5000,
     headers: {
-        'Content-Type': 'application/json'
-    }
+        'Content-Type': 'application/json',
+    },
 });
 
-// Add a request interceptor for potential future authentication
+// Add token interceptor (optional, if you plan to add auth)
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -19,7 +21,8 @@ API.interceptors.request.use((config) => {
     return Promise.reject(error);
 });
 
-export const getInventory = () => API.get("/inventory");
-export const addProduct = (data) => API.post("/inventory/add", data);
-export const updateProduct = (id, data) => API.put(`/inventory/update/${id}`, data);
-export const deleteProduct = (id) => API.delete(`/inventory/delete/${id}`);
+// ✅ Use routes that match backend
+export const getInventory = () => API.get("/products");
+export const addProduct = (data) => API.post("/products", data);
+export const updateProduct = (id, data) => API.patch(`/products/${id}`, data);
+export const deleteProduct = (id) => API.delete(`/products/${id}`);
