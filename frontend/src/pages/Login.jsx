@@ -47,7 +47,16 @@ const Login = () => {
         },
       }}
     >
-      <Container maxWidth="xs">
+      <Container 
+        maxWidth="xs" 
+        disableGutters 
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100%',
+        }}
+      >
         <Paper 
           elevation={6} 
           sx={{ 
@@ -57,6 +66,7 @@ const Login = () => {
             boxShadow: '0 0 30px rgba(255, 31, 31, 0.2)',
             position: 'relative',
             overflow: 'hidden',
+            width: '100%',
             '&::after': {
               content: '""',
               position: 'absolute',
@@ -179,8 +189,10 @@ const Login = () => {
                 letterSpacing: '0.1em',
                 fontWeight: 'bold',
                 boxShadow: '0 0 15px rgba(255, 31, 31, 0.4)',
+                backgroundColor: '#1976d2',
                 '&:hover': {
                   boxShadow: '0 0 20px rgba(255, 31, 31, 0.6)',
+                  backgroundColor: '#1565c0',
                 },
                 '&::after': {
                   content: '""',

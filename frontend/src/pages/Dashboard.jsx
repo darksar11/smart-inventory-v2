@@ -63,27 +63,66 @@ const Dashboard = () => {
   // Calculate summary statistics
   const totalItems = inventoryData.reduce((sum, item) => sum + (item?.quantity || 0), 0);
   
-  // Fix the total value calculation
+  // Fix total value calculation to use unitValue instead of price
   const totalValue = inventoryData.reduce(
     (sum, item) => {
       const quantity = item?.quantity || 0;
-      const price = item?.price || 0;
-      return sum + (quantity * price);
+      const unitValue = item?.unitValue || 0; // Changed from price to unitValue
+      return sum + (quantity * unitValue);
     },
     0
   ).toFixed(2);
   
   const uniqueProducts = inventoryData.length;
-  const lowStockItems = inventoryData.filter(item => (item?.quantity || 0) < 10).length;
+  
+  // Update low stock calculation to use user-defined thresholds
+  const lowStockItems = inventoryData.filter(item => {
+    const quantity = item?.quantity || 0;
+    const lowThreshold = item?.lowThreshold || 5;
+    const criticalThreshold = item?.criticalThreshold || 2;
+    
+    return quantity <= lowThreshold && quantity > criticalThreshold;
+  }).length;
 
+  // Function to determine color based on stock status
+  const getItemColor = (item) => {
+    const quantity = item?.quantity || 0;
+    const lowThreshold = item?.lowThreshold || 5;
+    const criticalThreshold = item?.criticalThreshold || 2;
+    
+    if (quantity <= criticalThreshold) {
+      return "rgba(244, 67, 54, 0.8)"; // Red for critical stock
+    } else if (quantity <= lowThreshold) {
+      return "rgba(255, 152, 0, 0.8)"; // Orange/Yellow for low stock
+    } else {
+      return "rgba(53, 162, 235, 0.8)"; // Blue for healthy stock
+    }
+  };
+
+  // Function to determine border color based on stock status
+  const getItemBorderColor = (item) => {
+    const quantity = item?.quantity || 0;
+    const lowThreshold = item?.lowThreshold || 5;
+    const criticalThreshold = item?.criticalThreshold || 2;
+    
+    if (quantity <= criticalThreshold) {
+      return "rgba(244, 67, 54, 1)"; // Red border for critical stock
+    } else if (quantity <= lowThreshold) {
+      return "rgba(255, 152, 0, 1)"; // Orange/Yellow border for low stock
+    } else {
+      return "rgba(53, 162, 235, 1)"; // Blue border for healthy stock
+    }
+  };
+
+  // Modified chart data with dynamic colors based on stock levels
   const chartData = {
-    labels: inventoryData.map(item => item?.productName || "Unnamed"),
+    labels: inventoryData.map(item => item?.productName || item?.name || "Unnamed"),
     datasets: [
       {
         label: "Stock Quantity",
         data: inventoryData.map(item => item?.quantity || 0),
-        backgroundColor: "rgba(53, 162, 235, 0.8)",
-        borderColor: "rgba(53, 162, 235, 1)",
+        backgroundColor: inventoryData.map(item => getItemColor(item)),
+        borderColor: inventoryData.map(item => getItemBorderColor(item)),
         borderWidth: 1,
         borderRadius: 4,
         barThickness: 30
@@ -113,7 +152,31 @@ const Dashboard = () => {
         bodyFont: {
           size: 13
         },
-        cornerRadius: 6
+        cornerRadius: 6,
+        callbacks: {
+          // Adding threshold information to tooltips
+          afterLabel: function(context) {
+            const item = inventoryData[context.dataIndex];
+            if (!item) return '';
+            
+            const quantity = item.quantity || 0;
+            const lowThreshold = item.lowThreshold || 5;
+            const criticalThreshold = item.criticalThreshold || 2;
+            
+            let status = "Healthy";
+            if (quantity <= criticalThreshold) {
+              status = "Critical Stock";
+            } else if (quantity <= lowThreshold) {
+              status = "Low Stock";
+            }
+            
+            return [
+              `Status: ${status}`,
+              `Low Threshold: ${lowThreshold}`,
+              `Critical Threshold: ${criticalThreshold}`
+            ];
+          }
+        }
       }
     },
     scales: {
