@@ -20,9 +20,11 @@ import {
   Card,
   CardContent,
   Divider,
-  useTheme
+  useTheme,
+  Snackbar
 } from "@mui/material";
 import { motion } from "framer-motion";
+import axios from "axios"; // Make sure axios is imported
 import InventoryOverview from "./InventoryOverview";
 import { getInventory } from "../api";
 
@@ -33,6 +35,8 @@ const Dashboard = () => {
   const [inventoryData, setInventoryData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportMessage, setReportMessage] = useState({ open: false, message: "", severity: "success" });
   const theme = useTheme();
 
   useEffect(() => {
@@ -58,6 +62,83 @@ const Dashboard = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Generate Excel Report function
+  const handleGenerateReport = async () => {
+    try {
+      setIsGeneratingReport(true);
+      
+      // Get the base URL for API requests
+      // Adjust if necessary - should match your backend server URL and port
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      
+      // Make API request to generate Excel report with full URL path
+      const response = await axios.get(`${baseUrl}/api/reports/generate-excel`, {
+        responseType: 'blob', // Important for binary data
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+      });
+      
+      // Alternative if you prefer to use relative URL (ensure proxy is configured)
+      // const response = await axios.get('/api/reports/generate-excel', {
+      //   responseType: 'blob',
+      //   headers: {
+      //     'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      //   }
+      // });
+      
+      // Create a Blob from the response data with explicit MIME type
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      
+      // Create an object URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a download link
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Set download attributes
+      const filename = `NexusInventoryReport-${new Date().toISOString().split('T')[0]}.xlsx`;
+      link.setAttribute('download', filename);
+      
+      // Append to the document, click and remove
+      document.body.appendChild(link);
+      link.click();
+      
+      // Need to delay the cleanup to ensure download starts
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      // Show success message
+      setReportMessage({
+        open: true,
+        message: "Report generated successfully!",
+        severity: "success"
+      });
+      
+    } catch (err) {
+      console.error('Failed to generate Excel report:', err);
+      
+      // Show error message
+      setReportMessage({
+        open: true,
+        message: "Failed to generate report. Please try again.",
+        severity: "error"
+      });
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  // Handle snackbar close
+  const handleCloseSnackbar = () => {
+    setReportMessage({ ...reportMessage, open: false });
   };
 
   // Calculate summary statistics
@@ -503,57 +584,57 @@ const Dashboard = () => {
                 </Typography>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={4}>
-                    <Button 
-                      variant="contained" 
+                    <Button
                       fullWidth
+                      variant="contained"
+                      onClick={handleGenerateReport}
+                      disabled={isGeneratingReport || inventoryData.length === 0}
+                      sx={{ 
+                        backgroundColor: "#4caf50",
+                        py: 1.5,
+                        color: "white",
+                        "&:hover": {
+                          backgroundColor: "#388e3c"
+                        }
+                      }}
+                    >
+                      {isGeneratingReport ? (
+                        <CircularProgress size={24} color="inherit" />  
+                      ) : (
+                        "Generate Excel Report"
+                      )}
+                    </Button>
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="primary"
                       sx={{ 
                         py: 1.5,
-                        borderRadius: 1,
                         backgroundColor: "#1976d2",
-                        textTransform: "none",
-                        fontSize: "1rem",
                         "&:hover": {
                           backgroundColor: "#1565c0"
                         }
                       }}
                     >
-                      Add New Product
+                      Export Inventory Data
                     </Button>
                   </Grid>
                   <Grid item xs={12} sm={4}>
-                    <Button 
-                      variant="contained" 
+                    <Button
                       fullWidth
+                      variant="contained"
+                      color="secondary" 
                       sx={{ 
                         py: 1.5,
-                        borderRadius: 1,
-                        backgroundColor: "#4caf50",
-                        textTransform: "none",
-                        fontSize: "1rem",
+                        backgroundColor: "#9c27b0",
                         "&:hover": {
-                          backgroundColor: "#43a047"
+                          backgroundColor: "#7b1fa2"
                         }
                       }}
                     >
-                      Generate Report
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <Button 
-                      variant="contained" 
-                      fullWidth
-                      sx={{ 
-                        py: 1.5,
-                        borderRadius: 1,
-                        backgroundColor: "#e91e63",
-                        textTransform: "none",
-                        fontSize: "1rem",
-                        "&:hover": {
-                          backgroundColor: "#d81b60"
-                        }
-                      }}
-                    >
-                      Review Orders
+                      Manage Thresholds
                     </Button>
                   </Grid>
                 </Grid>
@@ -562,6 +643,26 @@ const Dashboard = () => {
           </motion.div>
         </>
       )}
+
+      {/* Snackbar for report generation messages */}
+      <Snackbar 
+        open={reportMessage.open} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseSnackbar} 
+          severity={reportMessage.severity} 
+          sx={{ 
+            width: '100%',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+            borderRadius: 1
+          }}
+        >
+          {reportMessage.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -4,6 +4,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import inventoryRoutes from './routes/inventoryRoutes.js';
+import reportsRouter from './routes/reports.js';  // Import reports routes once
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -29,10 +30,11 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-inv
   console.error('Failed to connect to MongoDB', err);
 });
 
-// Routes - make sure this matches what your frontend is requesting
+// Routes - mount the routes only once with proper prefixes
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/reports', reportsRouter); // Mount reports router with /api prefix
 
-// Debug route
+// Debug route to check if API is running
 app.get('/api-status', (req, res) => {
   res.json({ status: 'API is running' });
 });
@@ -51,4 +53,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`API available at http://localhost:${PORT}/api/inventory/products`);
+  console.log(`Reports available at http://localhost:${PORT}/api/reports/generate-excel`);
 });
