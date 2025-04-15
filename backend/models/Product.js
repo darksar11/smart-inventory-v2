@@ -1,66 +1,72 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const ProductSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  category: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  description: {
-    type: String,
-    trim: true
-  },
-  quantity: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  lowThreshold: {
-    type: Number,
-    required: true,
-    default: 5
-  },
-  criticalThreshold: {
-    type: Number,
-    required: true,
-    default: 2
-  },
-  unitValue: {
-    type: Number,
-    required: true,
-    default: 0
-  },
-  sku: {
-    type: String,
-    trim: true,
-    unique: true
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
+const productSchema = new mongoose.Schema({
+    name: { 
+        type: String, 
+        required: true 
+    },
+    category: { 
+        type: String, 
+        required: true 
+    },
+    description: { 
+        type: String, 
+        default: '' 
+    },
+    quantity: { 
+        type: Number, 
+        required: true,
+        default: 0 
+    },
+    unitValue: { 
+        type: Number, 
+        required: true 
+    },
+    lowThreshold: { 
+        type: Number, 
+        default: 10 
+    },
+    criticalThreshold: { 
+        type: Number, 
+        default: 5 
+    },
+    sku: { 
+        type: String, 
+        default: '' 
+    },
+    lastUpdated: { 
+        type: Date, 
+        default: Date.now 
+    }
+}, {
+    timestamps: true,
+    // Add virtuals when converting to JSON
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
-// Middleware to update the 'updatedAt' field on save
-ProductSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
+// Virtual for productName to maintain backward compatibility with UI
+productSchema.virtual('productName').get(function() {
+    return this.name;
 });
 
-// Virtual for total value
-ProductSchema.virtual('totalValue').get(function() {
-  return this.quantity * this.unitValue;
+// Virtual for price to maintain backward compatibility with UI
+productSchema.virtual('price').get(function() {
+    return this.unitValue;
 });
 
-const Product = mongoose.model('Product', ProductSchema);
+// Virtual for calculating total value
+productSchema.virtual('totalValue').get(function() {
+    return this.quantity * this.unitValue;
+});
+
+// Pre-save hook to ensure lastUpdated is set
+productSchema.pre('save', function(next) {
+    this.lastUpdated = new Date();
+    next();
+});
+
+// Explicitly specify the collection name to ensure data is saved to 'products'
+const Product = mongoose.model("Product", productSchema, 'products');
 
 export default Product;
