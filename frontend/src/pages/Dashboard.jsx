@@ -21,10 +21,14 @@ import {
   CardContent,
   Divider,
   useTheme,
-  Snackbar
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from "@mui/material";
 import { motion } from "framer-motion";
-import axios from "axios"; // Make sure axios is imported
+import axios from "axios";
 import InventoryOverview from "./InventoryOverview";
 import { getInventory } from "../api";
 
@@ -37,6 +41,8 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   const [reportMessage, setReportMessage] = useState({ open: false, message: "", severity: "success" });
+  const [analyticsDialogOpen, setAnalyticsDialogOpen] = useState(false);
+  const [autoReorderDialogOpen, setAutoReorderDialogOpen] = useState(false);
   const theme = useTheme();
 
   useEffect(() => {
@@ -80,14 +86,6 @@ const Dashboard = () => {
           'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         }
       });
-      
-      // Alternative if you prefer to use relative URL (ensure proxy is configured)
-      // const response = await axios.get('/api/reports/generate-excel', {
-      //   responseType: 'blob',
-      //   headers: {
-      //     'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      //   }
-      // });
       
       // Create a Blob from the response data with explicit MIME type
       const blob = new Blob([response.data], {
@@ -134,6 +132,26 @@ const Dashboard = () => {
     } finally {
       setIsGeneratingReport(false);
     }
+  };
+
+  // New function to open Analytics Dashboard dialog
+  const handleOpenAnalyticsDashboard = () => {
+    setAnalyticsDialogOpen(true);
+  };
+
+  // New function to close Analytics Dashboard dialog
+  const handleCloseAnalyticsDashboard = () => {
+    setAnalyticsDialogOpen(false);
+  };
+
+  // New function to open Auto Reordering dialog
+  const handleOpenAutoReordering = () => {
+    setAutoReorderDialogOpen(true);
+  };
+
+  // New function to close Auto Reordering dialog
+  const handleCloseAutoReordering = () => {
+    setAutoReorderDialogOpen(false);
   };
 
   // Handle snackbar close
@@ -609,32 +627,32 @@ const Dashboard = () => {
                     <Button
                       fullWidth
                       variant="contained"
-                      color="primary"
+                      onClick={handleOpenAnalyticsDashboard}
                       sx={{ 
                         py: 1.5,
-                        backgroundColor: "#1976d2",
+                        backgroundColor: "#3f51b5",
                         "&:hover": {
-                          backgroundColor: "#1565c0"
+                          backgroundColor: "#303f9f"
                         }
                       }}
                     >
-                      Export Inventory Data
+                      Analytics Dashboard
                     </Button>
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <Button
                       fullWidth
                       variant="contained"
-                      color="secondary" 
+                      onClick={handleOpenAutoReordering}
                       sx={{ 
                         py: 1.5,
-                        backgroundColor: "#9c27b0",
+                        backgroundColor: "#ff5722",
                         "&:hover": {
-                          backgroundColor: "#7b1fa2"
+                          backgroundColor: "#e64a19"
                         }
                       }}
                     >
-                      Manage Thresholds
+                      Automated Reordering
                     </Button>
                   </Grid>
                 </Grid>
@@ -643,6 +661,130 @@ const Dashboard = () => {
           </motion.div>
         </>
       )}
+
+      {/* Analytics Dashboard Dialog */}
+      <Dialog
+        open={analyticsDialogOpen}
+        onClose={handleCloseAnalyticsDashboard}
+        maxWidth="lg"
+        fullWidth
+      >
+        <DialogTitle>
+          Analytics Dashboard
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Inventory Analysis
+            </Typography>
+            <Typography paragraph>
+              This feature provides detailed analytics visualization for your inventory data, including:
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Product Movement Trends</Typography>
+                  <Typography variant="body2">
+                    Track how products move in and out of inventory over time with detailed trend analysis
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Stock Turnover Rate</Typography>
+                  <Typography variant="body2">
+                    Analyze which products are moving quickly and which are stagnant in your inventory
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Value Distribution</Typography>
+                  <Typography variant="body2">
+                    See how monetary value is distributed across your inventory categories
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Predictive Stocking</Typography>
+                  <Typography variant="body2">
+                    AI-powered predictions for optimal stock levels based on historical data
+                  </Typography>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAnalyticsDashboard}>Close</Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={handleCloseAnalyticsDashboard}
+          >
+            Open Full Analytics
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Automated Reordering Dialog */}
+      <Dialog
+        open={autoReorderDialogOpen}
+        onClose={handleCloseAutoReordering}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Automated Reordering System
+        </DialogTitle>
+        <DialogContent dividers>
+          <Box sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Smart Reordering Rules
+            </Typography>
+            <Typography paragraph>
+              Configure automated purchase orders based on inventory levels and custom rules:
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5", mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Automatic Purchase Orders</Typography>
+                  <Typography variant="body2">
+                    System will generate purchase orders when inventory reaches specified thresholds
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5", mb: 2 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Supplier Integration</Typography>
+                  <Typography variant="body2">
+                    Connect directly with preferred suppliers for streamlined ordering process
+                  </Typography>
+                </Card>
+              </Grid>
+              <Grid item xs={12}>
+                <Card sx={{ p: 2, backgroundColor: "#f5f5f5" }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Real-time Notifications</Typography>
+                  <Typography variant="body2">
+                    Receive alerts when stock is low and orders are automatically placed
+                  </Typography>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAutoReordering}>Close</Button>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={handleCloseAutoReordering}
+          >
+            Configure Rules
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Snackbar for report generation messages */}
       <Snackbar 

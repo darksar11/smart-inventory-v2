@@ -3,18 +3,16 @@
 import express from 'express';
 import ExcelJS from 'exceljs';
 
-// Assuming you have these models based on your project structure
-// If your model structure differs, adjust accordingly
+// Import your models
 import Inventory from '../models/Inventory.js';
-import Product from '../models/Product.js';
 
 const router = express.Router();
 
 // Generate and download Excel report
 router.get('/generate-excel', async (req, res) => {
   try {
-    // Get inventory data - adjust this query based on your actual data structure
-    const inventoryData = await Inventory.find().populate('product');
+    // Get inventory data - without the populate that's causing the error
+    const inventoryData = await Inventory.find();
     
     // Create a new Excel workbook
     const workbook = new ExcelJS.Workbook();
@@ -30,14 +28,14 @@ router.get('/generate-excel', async (req, res) => {
     summarySheet.addRow(['Generated on:', new Date().toLocaleString()]);
     summarySheet.addRow([]);
     
-    // Calculate summary statistics
+    // Calculate summary statistics - modified to work with direct fields instead of populated fields
     const totalItems = inventoryData.reduce((sum, item) => sum + (item.quantity || 0), 0);
     const totalValue = inventoryData.reduce((sum, item) => {
       const quantity = item.quantity || 0;
-      const unitValue = item.product.unitValue || item.unitValue || 0;
+      const unitValue = item.unitValue || 0;
       return sum + (quantity * unitValue);
     }, 0);
-    const uniqueProducts = new Set(inventoryData.map(item => item.product._id.toString())).size;
+    const uniqueProducts = inventoryData.length; // Count unique documents
     
     // Count low stock items (using your dashboard threshold logic)
     const lowStockItems = inventoryData.filter(item => {
@@ -64,12 +62,12 @@ router.get('/generate-excel', async (req, res) => {
     summarySheet.addRow(['Critical Stock Items:', criticalStockItems.length]);
     summarySheet.addRow([]);
     
-    // Get stock by category
+    // Get stock by category - modified to work with direct fields
     const categoryTotals = {};
     inventoryData.forEach(item => {
-      const category = item.product.category || 'Uncategorized';
+      const category = item.category || 'Uncategorized';
       const quantity = item.quantity || 0;
-      const unitValue = item.product.unitValue || item.unitValue || 0;
+      const unitValue = item.unitValue || 0;
       const value = quantity * unitValue;
       
       if (!categoryTotals[category]) {
@@ -117,7 +115,7 @@ router.get('/generate-excel', async (req, res) => {
       fgColor: { argb: 'FFE0E0E0' }
     };
     
-    // Add data
+    // Add data - modified to work with direct fields
     inventoryData.forEach(item => {
       const quantity = item.quantity || 0;
       const lowThreshold = item.lowThreshold || 5;
@@ -131,9 +129,9 @@ router.get('/generate-excel', async (req, res) => {
       }
       
       stockStatusSheet.addRow({
-        name: item.product.name || item.productName,
-        sku: item.product.sku || item.sku || '-',
-        category: item.product.category || 'Uncategorized',
+        name: item.name || item.productName,
+        sku: item.sku || '-',
+        category: item.category || 'Uncategorized',
         quantity: quantity,
         lowThreshold: lowThreshold,
         criticalThreshold: criticalThreshold,
@@ -188,16 +186,16 @@ router.get('/generate-excel', async (req, res) => {
       fgColor: { argb: 'FFE0E0E0' }
     };
     
-    // Add data
+    // Add data - modified to work with direct fields
     inventoryData.forEach(item => {
       const quantity = item.quantity || 0;
-      const unitValue = item.product.unitValue || item.unitValue || 0;
+      const unitValue = item.unitValue || 0;
       const totalValue = quantity * unitValue;
       
       detailsSheet.addRow({
-        name: item.product.name || item.productName,
-        sku: item.product.sku || item.sku || '-',
-        category: item.product.category || 'Uncategorized',
+        name: item.name || item.productName,
+        sku: item.sku || '-',
+        category: item.category || 'Uncategorized',
         quantity: quantity,
         unitValue: `$${unitValue.toFixed(2)}`,
         totalValue: `$${totalValue.toFixed(2)}`,
